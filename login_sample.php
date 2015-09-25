@@ -1,5 +1,10 @@
 <?php
 
+	// ühenduse loomiseks kasuta
+	require_once("../config.php");
+	$database = "if15_rimo";
+	$mysqli = new mysqli($servername, $username, $password, $database);
+
   // muuutujad errorite jaoks
 	$email_error = "";
 	$password_error = "";
@@ -63,6 +68,20 @@
 
 			if(	$create_email_error == "" && $create_password_error == ""){
 				echo "Võib kasutajat luua! Kasutajanimi on ".$create_email." ja parool on ".$create_password;
+				
+				$password_hash = hash("sha512", $create_password);
+				echo "<br>";
+				echo $password_hash;
+				
+				$stmt = $mysqli->prepare("INSERT INTO user_sample (email, password) VALUES (?, ?)");
+				
+				// kui on error: echo $mysqli->error; või echo $stmt->error;
+				
+				//asendame ?? muutujate väärtustega
+				// ss -s täh string iga muutuja kohta
+				$stmt->bind_param("ss", $create_email, $password_hash);
+				$stmt->execute();
+				$stmt->close();
       }
 
     } // create if end
@@ -71,12 +90,12 @@
 
   // funktsioon, mis eemaldab kõikvõimaliku üleliigse tekstist
   function cleanInput($data) {
-  	$data = trim($data);
-  	$data = stripslashes($data);
-  	$data = htmlspecialchars($data);
+  	$data = trim($data);                // võtab tühikud, tabid ja enterid ära
+  	$data = stripslashes($data);        // võtab \\ ära
+  	$data = htmlspecialchars($data);    // muudab asjad tekstiks
   	return $data;
   }
-
+	$mysqli->close();
 ?>
 <!DOCTYPE html>
 <html>
